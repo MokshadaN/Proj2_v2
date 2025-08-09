@@ -1,0 +1,243 @@
+{
+    "sourcing_plan": [
+        {
+            "description": "Loads student enrollment data from a CSV file, containing student IDs and the classes they are enrolled in.",
+            "data_source": {
+                "url": "q-fastapi.csv",
+                "type": "csv"
+            },
+            "data_source_metadata": {
+                "columns": [
+                    "studentId",
+                    "class"
+                ],
+                "dtypes": {
+                    "studentId": "int64",
+                    "class": "object"
+                },
+                "sample_rows": [
+                    {
+                        "studentId": 1,
+                        "class": "MATH101"
+                    },
+                    {
+                        "studentId": 2,
+                        "class": "PHY201"
+                    }
+                ]
+            },
+            "codes": {
+                "pre_execution_script": ""
+            },
+            "source_type": "csv",
+            "data_cleaning_requirements": {
+                "description": "Ensure 'studentId' is an integer and 'class' is a string. Handle potential leading/trailing whitespaces in 'class' column. Check for and drop any rows with missing values to ensure data integrity for analysis.",
+                "cleaning_steps": [
+                    "Strip leading/trailing whitespaces from 'class' column.",
+                    "Convert 'studentId' to integer type, coercing errors to NaN and then dropping rows.",
+                    "Convert 'class' to string type.",
+                    "Drop any rows containing NaN values after type conversion."
+                ]
+            },
+            "extraction_params": {
+                "delimiter": ",",
+                "encoding": "utf-8",
+                "header": 0
+            },
+            "output": {
+                "variable_name": "student_data",
+                "schema": {
+                    "columns": [
+                        "studentId",
+                        "class"
+                    ],
+                    "dtypes": {
+                        "studentId": "int",
+                        "class": "string"
+                    }
+                }
+            },
+            "expected_format": "pandas_dataframe",
+            "error_handling": {
+                "file_not_found": "Raise an error if 'q-fastapi.csv' is not found.",
+                "parsing_errors": "Log errors for malformed rows and attempt to skip them.",
+                "data_type_mismatch": "Coerce data types where possible, otherwise drop rows that do not conform to the expected schema."
+            },
+            "validation_rules": [
+                "check_required_columns: ['studentId', 'class']",
+                "check_data_types: {'studentId': 'integer', 'class': 'string'}",
+                "check_for_missing_values: ['studentId', 'class'] - ensure no missing values after cleaning"
+            ],
+            "questions": [
+                "How many unique classes are there?",
+                "Which class has the highest number of students?",
+                "What is the average studentId for each class?",
+                "Draw a bar chart showing the number of students per class.",
+                "Which classes have only one student enrolled?",
+                "What is the distribution of student counts across classes?",
+                "Is there a class code pattern (e.g., ending in E or starting with 8)? List all such patterns with counts.",
+                "What percentage of students belong to classes that start with the digit '8'?"
+            ],
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ],
+            "optimized_duckdb_query": "SELECT studentId, class FROM 'q-fastapi.csv';"
+        }
+    ],
+    "analysis_plan": [
+        {
+            "qid": "q1_How many unique classes are there?",
+            "question": "How many unique classes are there?",
+            "task_id": 1,
+            "instruction": "Count the number of unique values in the 'class' column of the student_data DataFrame.",
+            "result_key": "unique_classes_count",
+            "task_type": "count",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\nstr(student_data['class'].nunique())",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        },
+        {
+            "qid": "q2_Which class has the highest number of students?",
+            "question": "Which class has the highest number of students?",
+            "task_id": 2,
+            "instruction": "Group the student_data DataFrame by 'class', count the number of students in each class, and find the class with the maximum count.",
+            "result_key": "class_highest_students",
+            "task_type": "aggregation",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\nstudent_data['class'].value_counts().idxmax()",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        },
+        {
+            "qid": "q3_What is the average studentId for each class?",
+            "question": "What is the average studentId for each class?",
+            "task_id": 3,
+            "instruction": "Group the student_data DataFrame by 'class' and calculate the average of 'studentId' for each group. Convert the result to a JSON string.",
+            "result_key": "avg_studentid_per_class",
+            "task_type": "aggregation",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\njson.dumps(student_data.groupby('class')['studentId'].mean().to_dict())",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        },
+        {
+            "qid": "q4_Draw a bar chart showing the number of students per class.",
+            "question": "Draw a bar chart showing the number of students per class.",
+            "task_id": 4,
+            "instruction": "Calculate the number of students per class, then generate a bar chart using matplotlib, and encode it as a base64 string.",
+            "result_key": "students_per_class_barchart",
+            "task_type": "plot",
+            "output_format": "base64_image",
+            "dependencies": [],
+            "code_snippet": "import matplotlib.pyplot as plt\nimport io\nimport base64\n\nstudents_per_class = student_data['class'].value_counts()\nplt.figure(figsize=(10, 6))\nstudents_per_class.plot(kind='bar')\nplt.title('Number of Students Per Class')\nplt.xlabel('Class')\nplt.ylabel('Number of Students')\nplt.xticks(rotation=45, ha='right')\nplt.tight_layout()\nimg_buffer = io.BytesIO()\nplt.savefig(img_buffer, format='png')\nplt.close()\nbase64_image = base64.b64encode(img_buffer.getvalue()).decode('utf-8')\nf\"data:image/png;base64,{base64_image}\"",
+            "libraries": [
+                "pandas",
+                "matplotlib"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/",
+                "https://matplotlib.org/stable/contents.html"
+            ]
+        },
+        {
+            "qid": "q5_Which classes have only one student enrolled?",
+            "question": "Which classes have only one student enrolled?",
+            "task_id": 5,
+            "instruction": "Group the student_data DataFrame by 'class', count the number of students, and filter for classes where the count is 1. Return the list of class names as a JSON string.",
+            "result_key": "classes_with_single_student",
+            "task_type": "filter",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\njson.dumps(student_data['class'].value_counts()[student_data['class'].value_counts() == 1].index.tolist())",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        },
+        {
+            "qid": "q6_What is the distribution of student counts across classes?",
+            "question": "What is the distribution of student counts across classes?",
+            "task_id": 6,
+            "instruction": "Calculate the number of students per class, then count how many classes have 1 student, 2 students, etc. Return the distribution as a JSON string.",
+            "result_key": "student_counts_distribution",
+            "task_type": "aggregation",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\njson.dumps(student_data['class'].value_counts().value_counts().sort_index().to_dict())",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        },
+        {
+            "qid": "q7_Is there a class code pattern (e.g., ending in E or starting with 8)? List all such patterns with counts.",
+            "question": "Is there a class code pattern (e.g., ending in E or starting with 8)? List all such patterns with counts.",
+            "task_id": 7,
+            "instruction": "Identify unique classes that end with 'E' and unique classes that start with '8'. Count them and return as a JSON string.",
+            "result_key": "class_code_patterns",
+            "task_type": "pattern_matching",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\npatterns = {}\nclasses_ending_e = student_data[student_data['class'].str.endswith('E', na=False)]['class'].nunique()\nclasses_starting_8 = student_data[student_data['class'].str.startswith('8', na=False)]['class'].nunique()\npatterns['classes_ending_with_E'] = int(classes_ending_e)\npatterns['classes_starting_with_8'] = int(classes_starting_8)\njson.dumps(patterns)",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        },
+        {
+            "qid": "q8_What percentage of students belong to classes that start with the digit '8'?",
+            "question": "What percentage of students belong to classes that start with the digit '8'?",
+            "task_id": 8,
+            "instruction": "Filter students whose class names start with '8'. Count them and divide by the total number of students, then multiply by 100. Return the percentage formatted to two decimal places as a string.",
+            "result_key": "percentage_students_class_starts_8",
+            "task_type": "calculation",
+            "output_format": "string",
+            "dependencies": [],
+            "code_snippet": "import json\ntotal_students = len(student_data)\nstudents_in_class_starting_8 = student_data[student_data['class'].str.startswith('8', na=False)]\ncount_students_starting_8 = len(students_in_class_starting_8)\npercentage = (count_students_starting_8 / total_students) * 100 if total_students > 0 else 0\nf\"{percentage:.2f}%\"",
+            "libraries": [
+                "pandas"
+            ],
+            "url_to_documentation_of_libraries": [
+                "https://pandas.pydata.org/docs/"
+            ]
+        }
+    ],
+    "final_output_format": {
+        "format": "json_array",
+        "example_result": [
+            "10",
+            "MATH101",
+            "{\"MATH101\": 85.5, \"ENG201\": 72.3}",
+            "data:image/png;base64,...",
+            "[\"ART101\"]",
+            "{\"1\": 5, \"2\": 3}",
+            "{\"classes_ending_with_E\": 2, \"classes_starting_with_8\": 1}",
+            "15.75%"
+        ]
+    }
+}

@@ -1,0 +1,19 @@
+@"
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Envs & secrets
+.env
+.env.*
+*.key
+*.pem
+
+# Logs & local artifacts
+*.log
+uploads/
+*.parquet
+"@ | Out-File -Encoding utf8 .gitignore

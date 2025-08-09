@@ -1,0 +1,13 @@
+You are provided with a CSV file named q-fastapi.csv containing studentId and class information.
+
+Answer the following questions and return the results as a JSON array of strings.
+
+1. How many unique classes are there?
+2. Which class has the highest number of students?
+3. What is the average studentId for each class?
+4. Draw a bar chart showing the number of students per class.
+   Return it as a base64-encoded image string: "data:image/png;base64,..."
+5. Which classes have only one student enrolled?
+6. What is the distribution of student counts across classes?
+7. Is there a class code pattern (e.g., ending in E or starting with 8)? List all such patterns with counts.
+8. What percentage of students belong to classes that start with the digit '8'?
